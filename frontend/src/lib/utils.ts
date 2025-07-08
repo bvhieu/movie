@@ -64,10 +64,10 @@ export function getVideoUrl(movieId: number | string): string {
 
 // Helper function to format view count
 export function formatViewCount(views: number | null | undefined, short: boolean = false): string {
-  if (!views || views === 0) return short ? '0' : '0 views';
-  if (views < 1000) return short ? `${views}` : `${views} views`;
-  if (views < 1000000) return short ? `${(views / 1000).toFixed(1)}K` : `${(views / 1000).toFixed(1)}K views`;
-  return short ? `${(views / 1000000).toFixed(1)}M` : `${(views / 1000000).toFixed(1)}M views`;
+  if (!views || views === 0) return short ? '0' : '0';
+  if (views < 1000) return short ? `${views}` : `${views}`;
+  if (views < 1000000) return short ? `${(views / 1000).toFixed(1)}K` : `${(views / 1000).toFixed(1)}K`;
+  return short ? `${(views / 1000000).toFixed(1)}M` : `${(views / 1000000).toFixed(1)}M`;
 }
 
 // Helper function to get genre colors

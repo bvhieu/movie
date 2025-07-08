@@ -22,9 +22,9 @@ export function MovieCard({
   enableAutoPlay = true // Default to true for better UX
 }: MovieCardProps) {
   const sizeClasses = {
-    sm: 'aspect-square w-28 sm:w-32',
-    md: 'aspect-square w-36 sm:w-48', 
-    lg: 'aspect-square w-48 sm:w-64',
+    sm: 'aspect-square w-full',
+    md: 'aspect-square w-full', 
+    lg: 'aspect-square w-full',
   };
 
   // Create the URL with auto-play parameter when enabled
@@ -34,7 +34,7 @@ export function MovieCard({
     <div className={cn('group relative', className)}>
       <Link href={movieUrl}>
         <div className={cn(
-          'relative overflow-hidden rounded-lg bg-gray-800 transition-all duration-300',
+          'relative overflow-hidden bg-gray-800 transition-all duration-300',
           'group-hover:scale-105 group-hover:shadow-2xl',
           sizeClasses[size]
         )}>
@@ -64,7 +64,7 @@ export function MovieCard({
           {/* Genre badge */}
           <div className="absolute top-1 left-1 sm:top-2 sm:left-2">
             {movie.genres && movie.genres.length > 0 && (
-              <span className="rounded bg-pink-500 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs font-semibold">
+              <span className="rounded-none bg-pink-500 text-white px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs font-semibold">
                 {movie.genres[0].name}
               </span>
             )}
@@ -72,7 +72,7 @@ export function MovieCard({
           
           {/* Rating badge */}
           {parseRating(movie.averageRating) > 0 && (
-            <div className="absolute top-1 right-1 sm:top-2 sm:right-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs text-white">
+            <div className="absolute top-1 right-1 sm:top-2 sm:right-2 flex items-center gap-1 rounded-none bg-black/70 px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs text-white">
               <Star className="h-3 w-3 text-yellow-400" fill="currentColor" />
               <span>{formatRating(movie.averageRating)}</span>
             </div>
@@ -80,7 +80,7 @@ export function MovieCard({
           
           {/* Views badge */}
           {movie.views > 0 && (
-            <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs text-white">
+            <div className="absolute bottom-1 right-1 sm:bottom-2 sm:right-2 flex items-center gap-1 rounded-none bg-black/70 px-1.5 py-0.5 sm:px-2 sm:py-1 text-xs text-white">
               <Eye className="h-3 w-3" />
               <span className="hidden sm:inline">{formatViewCount(movie.views)}</span>
               <span className="sm:hidden">{formatViewCount(movie.views, true)}</span>
@@ -92,7 +92,7 @@ export function MovieCard({
       {/* Movie details */}
       {showDetails && (
         <div className="mt-2 sm:mt-3 space-y-1">
-          <h3 className="font-semibold text-white line-clamp-1 text-sm sm:text-base">
+          <h3 className="text-white line-clamp-2 text-xs sm:text-sm">
             {movie.title}
           </h3>
           
