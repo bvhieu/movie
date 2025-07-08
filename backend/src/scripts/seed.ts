@@ -15,7 +15,7 @@ async function runSeed() {
     await app.close();
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error during seeding:', error);
+    console.error('❌ Error during seeding: ', error);
     process.exit(1);
   }
 }

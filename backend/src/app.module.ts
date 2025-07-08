@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { VideoModule } from './modules/video/video.module';
@@ -13,6 +14,8 @@ import { GenresModule } from './modules/genres/genres.module';
 import { RatingsModule } from './modules/ratings/ratings.module';
 import { WatchlistModule } from './modules/watchlist/watchlist.module';
 import { UserProfilesModule } from './modules/user-profiles/user-profiles.module';
+import { SecurityMiddleware } from './common/middleware/security.middleware';
+import { SecurityInterceptor } from './common/interceptors/security.interceptor';
 
 @Module({
   imports: [
@@ -32,6 +35,19 @@ import { UserProfilesModule } from './modules/user-profiles/user-profiles.module
     UserProfilesModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: SecurityInterceptor,
+    },
+  ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Security middleware temporarily disabled for testing
+    // consumer
+    //   .apply(SecurityMiddleware)
+    //   .forRoutes('*'); // Apply security middleware to all routes
+  }
+}

@@ -147,6 +147,30 @@ export class MoviesService {
     return this.moviesRepository.save(movie);
   }
 
+  async updateThumbnail(
+    id: number,
+    files: {
+      thumbnail?: Express.Multer.File[];
+      poster?: Express.Multer.File[];
+    },
+  ): Promise<Movie> {
+    const movie = await this.findOne(id);
+    
+    // Update thumbnail if provided
+    if (files.thumbnail && files.thumbnail.length > 0) {
+      const thumbnailFile = files.thumbnail[0];
+      movie.thumbnail = `/uploads/${thumbnailFile.filename}`;
+    }
+    
+    // Update poster if provided
+    if (files.poster && files.poster.length > 0) {
+      const posterFile = files.poster[0];
+      movie.poster = `/uploads/${posterFile.filename}`;
+    }
+    
+    return this.moviesRepository.save(movie);
+  }
+
   async remove(id: number): Promise<void> {
     const movie = await this.findOne(id);
     movie.isActive = false; // Soft delete

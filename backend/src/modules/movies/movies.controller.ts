@@ -17,6 +17,7 @@ import {
   NotFoundException,
   Options,
   Req,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
@@ -349,8 +350,10 @@ export class MoviesController {
   @Get(':id')
   @ApiOperation({ summary: 'Get movie by ID' })
   @ApiResponse({ status: 200, description: 'Movie found', type: Movie })
-  async findOne(@Param('id') id: string): Promise<Movie> {
-    return this.moviesService.findOne(+id);
+  @ApiResponse({ status: 400, description: 'Invalid movie ID' })
+  @ApiResponse({ status: 404, description: 'Movie not found' })
+  async findOne(@Param('id', ParseIntPipe) id: number): Promise<Movie> {
+    return this.moviesService.findOne(id);
   }
 
   @Patch(':id')
@@ -364,6 +367,72 @@ export class MoviesController {
     @Body() updateMovieDto: UpdateMovieDto,
   ): Promise<Movie> {
     return this.moviesService.update(+id, updateMovieDto);
+  }
+
+  @Patch(':id/thumbnail')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update movie thumbnail (Admin only)' })
+  @ApiResponse({ status: 200, description: 'Thumbnail updated', type: Movie })
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'thumbnail', maxCount: 1 },
+        { name: 'poster', maxCount: 1 },
+      ],
+      {
+        storage: diskStorage({
+          destination: (req, file, cb) => {
+            const uploadPath = './uploads';
+            const fs = require('fs');
+            if (!fs.existsSync(uploadPath)) {
+              fs.mkdirSync(uploadPath, { recursive: true });
+            }
+            cb(null, uploadPath);
+          },
+          filename: (req, file, callback) => {
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const ext = extname(file.originalname);
+            const sanitizedOriginalName = file.originalname
+              .replace(/[^a-zA-Z0-9.-]/g, '_')
+              .replace(ext, '')
+              .substring(0, 50);
+            callback(
+              null,
+              `${file.fieldname}-${uniqueSuffix}-${sanitizedOriginalName}${ext}`,
+            );
+          },
+        }),
+        fileFilter: (req, file, callback) => {
+          const allowedImageTypes = [
+            'image/jpeg',
+            'image/jpg', 
+            'image/png',
+            'image/webp',
+            'image/gif',
+          ];
+          
+          if (allowedImageTypes.includes(file.mimetype)) {
+            callback(null, true);
+          } else {
+            callback(new BadRequestException(`Invalid file type for ${file.fieldname}. Allowed: JPG, PNG, WebP, GIF`), false);
+          }
+        },
+        limits: {
+          fileSize: 10 * 1024 * 1024, // 10MB limit
+        },
+      },
+    ),
+  )
+  async updateThumbnail(
+    @Param('id') id: string,
+    @UploadedFiles() files: {
+      thumbnail?: Express.Multer.File[];
+      poster?: Express.Multer.File[];
+    },
+  ): Promise<Movie> {
+    return this.moviesService.updateThumbnail(+id, files);
   }
 
   @Delete(':id')
@@ -562,7 +631,11 @@ export class MoviesController {
         'Access-Control-Expose-Headers': 'Content-Range, Content-Length, Accept-Ranges'
       };
 
-      if (!range && !probablyBrowser && !isHeadRequest) {
+      // Allow browsers and HEAD requests without Range header
+      // Only require Range header for non-browser requests that aren't HEAD
+      const allowWithoutRange = probablyBrowser || isHeadRequest(req);
+      
+      if (!range && !allowWithoutRange) {
         console.log('⚠️ Missing range header from non-browser, rejecting request');
         res.status(400).json({ message: 'Range header required for this request' });
         return;
