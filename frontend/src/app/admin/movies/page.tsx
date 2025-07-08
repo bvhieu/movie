@@ -1,5 +1,5 @@
-import AdminMovieManager from '@/components/AdminMovieManager';
+import AdminPanel from '@/components/AdminPanel';
 
 export default function AdminMoviesPage() {
-  return <AdminMovieManager />;
+  return <AdminPanel />;
 }

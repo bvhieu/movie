@@ -35,6 +35,12 @@ export class GenresService {
     return genre;
   }
 
+  async findByName(name: string): Promise<Genre | null> {
+    return this.genresRepository.findOne({
+      where: { name },
+    });
+  }
+
   async update(id: number, updateGenreDto: UpdateGenreDto): Promise<Genre> {
     const genre = await this.findOne(id);
     Object.assign(genre, updateGenreDto);

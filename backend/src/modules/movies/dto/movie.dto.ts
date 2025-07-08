@@ -171,6 +171,21 @@ export class CreateMovieDto {
   @IsOptional()
   isNewRelease?: boolean;
 
+  @ApiPropertyOptional({ description: 'YouTube video ID' })
+  @IsString()
+  @IsOptional()
+  youtubeId?: string;
+
+  @ApiPropertyOptional({ description: 'Is YouTube content' })
+  @IsBoolean()
+  @IsOptional()
+  isYouTubeContent?: boolean;
+
+  @ApiPropertyOptional({ description: 'Number of views' })
+  @IsNumber()
+  @IsOptional()
+  views?: number;
+
   @ApiPropertyOptional({ description: 'Genre IDs' })
   @IsArray()
   @IsNumber({}, { each: true })

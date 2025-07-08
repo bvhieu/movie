@@ -129,6 +129,12 @@ export class Movie {
   @Column({ default: false })
   isNewRelease: boolean;
 
+  @Column({ nullable: true })
+  youtubeId: string;
+
+  @Column({ default: false })
+  isYouTubeContent: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 

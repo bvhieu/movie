@@ -265,4 +265,33 @@ export class MoviesService {
     movie.isFeatured = featured;
     return this.moviesRepository.save(movie);
   }
+
+  async findByTitle(title: string): Promise<Movie | null> {
+    return this.moviesRepository.findOne({
+      where: { title, isActive: true },
+      relations: ['genres'],
+    });
+  }
+
+  async addGenreToMovie(movieId: number, genreId: number): Promise<void> {
+    const movie = await this.findOne(movieId);
+    const genre = await this.genresRepository.findOne({
+      where: { id: genreId },
+    });
+
+    if (!genre) {
+      throw new NotFoundException(`Genre with ID ${genreId} not found`);
+    }
+
+    if (!movie.genres) {
+      movie.genres = [];
+    }
+
+    // Check if genre is already assigned
+    const isAlreadyAssigned = movie.genres.some(g => g.id === genreId);
+    if (!isAlreadyAssigned) {
+      movie.genres.push(genre);
+      await this.moviesRepository.save(movie);
+    }
+  }
 }
