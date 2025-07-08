@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Stream Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #1a1a1a;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        video {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            background-color: black;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background-color: #2a2a2a;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            max-height: 300px;
+            overflow-y: scroll;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Video Stream Test</h1>
+        
+        <div class="controls">
+            <label for="movieId">Movie ID:</label>
+            <input type="number" id="movieId" value="11" min="1">
+            <button onclick="loadVideo()">Load Video</button>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+        
+        <video
+            id="videoPlayer"
+            controls
+            preload="metadata"
+            crossorigin="anonymous"
+        >
+            Your browser does not support the video tag.
+        </video>
+        
+        <div>
+            <p><strong>Current URL:</strong> <span id="currentUrl">None</span></p>
+            <p><strong>Video Status:</strong> <span id="videoStatus">Not loaded</span></p>
+        </div>
+        
+        <div class="log" id="logOutput">
+            <div>Log output will appear here...</div>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('videoPlayer');
+        const movieIdInput = document.getElementById('movieId');
+        const currentUrlSpan = document.getElementById('currentUrl');
+        const videoStatusSpan = document.getElementById('videoStatus');
+        const logOutput = document.getElementById('logOutput');
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logOutput.appendChild(logEntry);
+            logOutput.scrollTop = logOutput.scrollHeight;
+            console.log(message);
+        }
+
+        function clearLog() {
+            logOutput.innerHTML = '<div>Log cleared...</div>';
+        }
+
+        function updateStatus(status) {
+            videoStatusSpan.textContent = status;
+            log(`Status: ${status}`);
+        }
+
+        function loadVideo() {
+            const movieId = movieIdInput.value;
+            const baseUrl = 'http://localhost:3001/api';
+            const streamUrl = `${baseUrl}/movies/${movieId}/stream`;
+            
+            log(`Loading video for movie ID: ${movieId}`);
+            log(`Stream URL: ${streamUrl}`);
+            currentUrlSpan.textContent = streamUrl;
+            
+            // Clear existing source
+            video.src = '';
+            video.load();
+            
+            // Test movie existence first
+            fetch(`${baseUrl}/movies/${movieId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Movie not found: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(movie => {
+                    log(`Movie found: ${movie.title}`);
+                    log(`Video URL in DB: ${movie.videoUrl}`);
+                    
+                    // Set video source
+                    video.src = streamUrl;
+                    video.load();
+                    updateStatus('Loading...');
+                })
+                .catch(error => {
+                    log(`Error fetching movie: ${error.message}`);
+                    updateStatus('Error');
+                });
+        }
+
+        // Video event listeners
+        video.addEventListener('loadstart', () => {
+            log('Video loadstart event');
+            updateStatus('Load started');
+        });
+
+        video.addEventListener('loadedmetadata', () => {
+            log(`Video metadata loaded - Duration: ${video.duration}s`);
+            updateStatus('Metadata loaded');
+        });
+
+        video.addEventListener('canplay', () => {
+            log('Video can start playing');
+            updateStatus('Ready to play');
+        });
+
+        video.addEventListener('canplaythrough', () => {
+            log('Video can play through without buffering');
+            updateStatus('Ready to play through');
+        });
+
+        video.addEventListener('playing', () => {
+            log('Video started playing');
+            updateStatus('Playing');
+        });
+
+        video.addEventListener('pause', () => {
+            log('Video paused');
+            updateStatus('Paused');
+        });
+
+        video.addEventListener('ended', () => {
+            log('Video ended');
+            updateStatus('Ended');
+        });
+
+        video.addEventListener('error', (e) => {
+            const error = video.error;
+            let errorMessage = 'Unknown error';
+            
+            if (error) {
+                switch (error.code) {
+                    case MediaError.MEDIA_ERR_ABORTED:
+                        errorMessage = 'Video loading aborted';
+                        break;
+                    case MediaError.MEDIA_ERR_NETWORK:
+                        errorMessage = 'Network error while loading video';
+                        break;
+                    case MediaError.MEDIA_ERR_DECODE:
+                        errorMessage = 'Video decode error';
+                        break;
+                    case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                        errorMessage = 'Video format not supported';
+                        break;
+                }
+            }
+            
+            log(`Video error: ${errorMessage} (Code: ${error?.code})`);
+            updateStatus(`Error: ${errorMessage}`);
+        });
+
+        video.addEventListener('waiting', () => {
+            log('Video is buffering');
+            updateStatus('Buffering');
+        });
+
+        // Load default video on page load
+        window.addEventListener('load', () => {
+            log('Page loaded, ready for testing');
+            loadVideo();
+        });
+    </script>
+</body>
+</html>

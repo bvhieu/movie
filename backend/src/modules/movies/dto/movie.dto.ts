@@ -1,25 +1,48 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, IsArray, IsBoolean, IsDateString } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, IsArray, IsBoolean, IsDateString, MinLength, MaxLength, Matches, IsUrl, IsInt, Min, Max, ArrayMaxSize } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MovieType, ContentRating } from '../movie.entity';
 
+// Sanitization transformer for HTML/XSS protection
+const SanitizeHtml = () => Transform(({ value }) => {
+  if (typeof value !== 'string') return value;
+  
+  return value
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+    .replace(/javascript:/gi, '')
+    .replace(/on\w+\s*=/gi, '')
+    .trim();
+});
+
 export class CreateMovieDto {
   @ApiProperty({ description: 'Movie title' })
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Title must be a string' })
+  @IsNotEmpty({ message: 'Title is required' })
+  @MinLength(1, { message: 'Title must not be empty' })
+  @MaxLength(200, { message: 'Title must not exceed 200 characters' })
+  @SanitizeHtml()
   title: string;
 
   @ApiProperty({ description: 'Movie description' })
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Description must be a string' })
+  @IsNotEmpty({ message: 'Description is required' })
+  @MinLength(10, { message: 'Description must be at least 10 characters' })
+  @MaxLength(5000, { message: 'Description must not exceed 5000 characters' })
+  @SanitizeHtml()
   description: string;
 
   @ApiPropertyOptional({ description: 'Movie tagline' })
-  @IsString()
+  @IsString({ message: 'Tagline must be a string' })
   @IsOptional()
+  @MaxLength(500, { message: 'Tagline must not exceed 500 characters' })
+  @SanitizeHtml()
   tagline?: string;
 
   @ApiProperty({ description: 'Release year' })
-  @IsNumber()
+  @IsInt({ message: 'Release year must be an integer' })
+  @Min(1900, { message: 'Release year must be 1900 or later' })
+  @Max(new Date().getFullYear() + 5, { message: `Release year must not exceed ${new Date().getFullYear() + 5}` })
   releaseYear: number;
 
   @ApiProperty({ description: 'Release date' })

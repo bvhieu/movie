@@ -1,0 +1,95 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Security CSS - Disable some video download features */
+video {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+video::-webkit-media-controls-download-button {
+  display: none;
+}
+
+video::-webkit-media-controls-fullscreen-button {
+  display: none;
+}
+
+/* Disable drag and drop on video elements */
+video {
+  pointer-events: auto;
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+
+/* Responsive Scrollbars */
+.scrollbar-hide {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Touch optimized scrolling */
+@media (max-width: 640px) {
+  .scrollbar-hide {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+
+/* Responsive spacing utilities */
+@media (max-width: 640px) {
+  .mobile-compact {
+    padding: 0.5rem !important;
+  }
+}
+
+/* Better tap targets for mobile */
+@media (max-width: 640px) {
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Protected video player specific styles */
+.protected-video {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+  pointer-events: auto;
+}

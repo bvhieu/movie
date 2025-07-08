@@ -1,0 +1,77 @@
+/* Video Player Responsive Styles */
+.video-progress-buffered {
+  width: var(--progress-width, 0%);
+  transition: width 0.3s ease;
+}
+
+.video-progress-current {
+  width: var(--progress-width, 0%);
+  transition: width 0.1s ease;
+}
+
+.video-controls {
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  padding: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .video-controls {
+    padding: 1rem;
+  }
+}
+
+.video-progress-bar {
+  cursor: pointer;
+  transition: height 0.2s ease;
+  height: 3px;
+}
+
+@media (min-width: 640px) {
+  .video-progress-bar {
+    height: 4px;
+  }
+}
+
+.video-progress-bar:hover {
+  height: 6px;
+}
+
+@media (max-width: 640px) {
+  .video-progress-bar:hover {
+    height: 5px;
+  }
+}
+
+.volume-slider {
+  accent-color: #ef4444;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  background: #ef4444;
+}
+
+.volume-slider::-moz-range-thumb {
+  background: #ef4444;
+  border: none;
+}
+
+/* Dynamic width styles to avoid inline styles */
+.progress-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.1s ease;
+}
+
+/* Mobile touch targets */
+@media (max-width: 640px) {
+  .control-button {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}

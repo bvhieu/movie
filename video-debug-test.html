@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Video Debug Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #1a1a1a; 
+            color: white; 
+        }
+        .section { 
+            margin: 20px 0; 
+            padding: 20px; 
+            border: 1px solid #444; 
+            border-radius: 8px; 
+        }
+        video { 
+            width: 100%; 
+            max-width: 640px; 
+            border: 2px solid #555; 
+        }
+        .log { 
+            background: #333; 
+            padding: 10px; 
+            border-radius: 4px; 
+            max-height: 300px; 
+            overflow-y: auto; 
+            font-family: monospace; 
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .button {
+            background: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover { background: #45a049; }
+        .status { margin: 10px 0; }
+        .network-log { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Video Streaming Debug Test</h1>
+    
+    <div class="section">
+        <h2>Test 1: Direct Video Element (Baseline)</h2>
+        <button class="button" onclick="testDirectVideo()">Test Direct Video</button>
+        <div class="status" id="direct-status">Status: Not tested</div>
+        <video id="direct-video" controls style="display: none;">
+            <source type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="log" id="direct-log"></div>
+    </div>
+
+    <div class="section">
+        <h2>Test 2: Simulated Component Mount</h2>
+        <button class="button" onclick="testComponentMount()">Test Component Mount</button>
+        <div class="status" id="component-status">Status: Not tested</div>
+        <video id="component-video" controls style="display: none;">
+            <source type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        <div class="log" id="component-log"></div>
+    </div>
+
+    <div class="section">
+        <h2>Test 3: Network Request Analysis</h2>
+        <button class="button" onclick="testNetworkRequests()">Test Network Requests</button>
+        <div class="status" id="network-status">Status: Not tested</div>
+        <div class="log" id="network-log"></div>
+    </div>
+
+    <div class="section">
+        <h2>Test 4: Environment Variables</h2>
+        <button class="button" onclick="testEnvironment()">Test Environment</button>
+        <div class="status" id="env-status">Status: Not tested</div>
+        <div class="log" id="env-log"></div>
+    </div>
+
+    <script>
+        let logs = {
+            direct: '',
+            component: '',
+            network: '',
+            env: ''
+        };
+
+        function log(section, message) {
+            const timestamp = new Date().toISOString().substr(11, 12);
+            logs[section] += `[${timestamp}] ${message}\n`;
+            document.getElementById(section + '-log').textContent = logs[section];
+            console.log(`[${section}] ${message}`);
+        }
+
+        function updateStatus(section, status) {
+            document.getElementById(section + '-status').textContent = `Status: ${status}`;
+        }
+
+        async function testDirectVideo() {
+            const video = document.getElementById('direct-video');
+            const section = 'direct';
+            
+            log(section, 'Starting direct video test...');
+            updateStatus(section, 'Testing...');
+            
+            try {
+                // Clear previous setup
+                video.style.display = 'block';
+                video.src = '';
+                
+                // Set up event listeners
+                video.addEventListener('loadstart', () => log(section, 'Event: loadstart'));
+                video.addEventListener('loadedmetadata', () => log(section, 'Event: loadedmetadata'));
+                video.addEventListener('loadeddata', () => log(section, 'Event: loadeddata'));
+                video.addEventListener('canplay', () => log(section, 'Event: canplay'));
+                video.addEventListener('canplaythrough', () => log(section, 'Event: canplaythrough'));
+                video.addEventListener('error', (e) => log(section, `Event: error - ${e.message || 'Unknown error'}`));
+                video.addEventListener('stalled', () => log(section, 'Event: stalled'));
+                video.addEventListener('suspend', () => log(section, 'Event: suspend'));
+                video.addEventListener('abort', () => log(section, 'Event: abort'));
+                video.addEventListener('emptied', () => log(section, 'Event: emptied'));
+
+                // Set source
+                const streamUrl = 'http://localhost:3001/api/movies/1/stream';
+                log(section, `Setting video source: ${streamUrl}`);
+                video.src = streamUrl;
+                
+                // Monitor video properties
+                const checkProperties = () => {
+                    log(section, `readyState: ${video.readyState}, networkState: ${video.networkState}`);
+                    log(section, `currentSrc: ${video.currentSrc}`);
+                    if (video.error) {
+                        log(section, `Video error: ${video.error.code} - ${video.error.message}`);
+                    }
+                };
+                
+                setTimeout(checkProperties, 1000);
+                setTimeout(checkProperties, 3000);
+                setTimeout(checkProperties, 5000);
+                
+                updateStatus(section, 'Loading...');
+                
+            } catch (error) {
+                log(section, `Error: ${error.message}`);
+                updateStatus(section, `Error: ${error.message}`);
+            }
+        }
+
+        async function testComponentMount() {
+            const video = document.getElementById('component-video');
+            const section = 'component';
+            
+            log(section, 'Starting component mount simulation...');
+            updateStatus(section, 'Testing...');
+            
+            try {
+                // Simulate React component mounting behavior
+                video.style.display = 'block';
+                
+                // Step 1: Component mount
+                log(section, 'Step 1: Component mounting...');
+                
+                // Step 2: useEffect with dependencies
+                log(section, 'Step 2: useEffect dependencies changed...');
+                
+                // Step 3: Async setup
+                log(section, 'Step 3: Setting up video element...');
+                
+                // Clear and set up like React component would
+                video.src = '';
+                video.load(); // Reset video element
+                
+                // Add event listeners
+                video.addEventListener('loadstart', () => log(section, 'Event: loadstart'));
+                video.addEventListener('loadedmetadata', () => log(section, 'Event: loadedmetadata'));
+                video.addEventListener('loadeddata', () => log(section, 'Event: loadeddata'));
+                video.addEventListener('canplay', () => log(section, 'Event: canplay'));
+                video.addEventListener('canplaythrough', () => log(section, 'Event: canplaythrough'));
+                video.addEventListener('error', (e) => log(section, `Event: error - ${e.message || 'Unknown error'}`));
+                
+                // Simulate async setup delay (like in React)
+                setTimeout(() => {
+                    const streamUrl = 'http://localhost:3001/api/movies/1/stream';
+                    log(section, `Step 4: Setting video source after delay: ${streamUrl}`);
+                    video.src = streamUrl;
+                    
+                    // Monitor like React component would
+                    const interval = setInterval(() => {
+                        log(section, `Monitoring - readyState: ${video.readyState}, networkState: ${video.networkState}`);
+                        if (video.readyState >= 2) { // HAVE_CURRENT_DATA
+                            clearInterval(interval);
+                            log(section, 'Video has sufficient data');
+                        }
+                    }, 1000);
+                    
+                    setTimeout(() => clearInterval(interval), 10000);
+                }, 100);
+                
+                updateStatus(section, 'Simulating component lifecycle...');
+                
+            } catch (error) {
+                log(section, `Error: ${error.message}`);
+                updateStatus(section, `Error: ${error.message}`);
+            }
+        }
+
+        async function testNetworkRequests() {
+            const section = 'network';
+            
+            log(section, 'Starting network request analysis...');
+            updateStatus(section, 'Testing...');
+            
+            try {
+                // Test 1: Basic fetch to streaming endpoint
+                log(section, 'Test 1: Basic fetch to streaming endpoint...');
+                const response1 = await fetch('http://localhost:3001/api/movies/1/stream', {
+                    method: 'HEAD'
+                });
+                log(section, `Response status: ${response1.status}`);
+                log(section, `Response headers: ${JSON.stringify(Object.fromEntries(response1.headers.entries()), null, 2)}`);
+                
+                // Test 2: Range request
+                log(section, 'Test 2: Range request...');
+                const response2 = await fetch('http://localhost:3001/api/movies/1/stream', {
+                    headers: {
+                        'Range': 'bytes=0-1023'
+                    }
+                });
+                log(section, `Range response status: ${response2.status}`);
+                log(section, `Range response headers: ${JSON.stringify(Object.fromEntries(response2.headers.entries()), null, 2)}`);
+                
+                // Test 3: Movie metadata
+                log(section, 'Test 3: Movie metadata request...');
+                const response3 = await fetch('http://localhost:3001/api/movies/1');
+                const movieData = await response3.json();
+                log(section, `Movie data: ${JSON.stringify(movieData, null, 2)}`);
+                
+                updateStatus(section, 'Network tests completed');
+                
+            } catch (error) {
+                log(section, `Network error: ${error.message}`);
+                updateStatus(section, `Network error: ${error.message}`);
+            }
+        }
+
+        async function testEnvironment() {
+            const section = 'env';
+            
+            log(section, 'Testing environment configuration...');
+            updateStatus(section, 'Testing...');
+            
+            try {
+                // Check window object for Next.js env vars
+                log(section, 'Checking window.location:');
+                log(section, `  href: ${window.location.href}`);
+                log(section, `  origin: ${window.location.origin}`);
+                log(section, `  protocol: ${window.location.protocol}`);
+                
+                // Check for any exposed env vars
+                log(section, 'Checking for environment variables...');
+                if (typeof process !== 'undefined' && process.env) {
+                    log(section, `NODE_ENV: ${process.env.NODE_ENV}`);
+                    log(section, `NEXT_PUBLIC_API_URL: ${process.env.NEXT_PUBLIC_API_URL}`);
+                } else {
+                    log(section, 'process.env not available in browser');
+                }
+                
+                // Check document properties
+                log(section, 'Document properties:');
+                log(section, `  readyState: ${document.readyState}`);
+                log(section, `  title: ${document.title}`);
+                
+                // Check user agent
+                log(section, `User Agent: ${navigator.userAgent}`);
+                
+                updateStatus(section, 'Environment check completed');
+                
+            } catch (error) {
+                log(section, `Environment error: ${error.message}`);
+                updateStatus(section, `Environment error: ${error.message}`);
+            }
+        }
+
+        // Auto-run basic tests on load
+        window.addEventListener('load', () => {
+            console.log('Page loaded, ready for manual testing');
+        });
+    </script>
+</body>
+</html>
