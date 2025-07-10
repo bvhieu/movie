@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Movie } from './movie.entity';
+import { ContentRating, Movie, MovieType } from './movie.entity';
 import { Genre } from '../genres/genre.entity';
 import { CreateMovieDto, UpdateMovieDto } from './dto/movie.dto';
-
+import puppeteer from 'puppeteer';
 @Injectable()
 export class MoviesService {
   constructor(
@@ -155,19 +155,19 @@ export class MoviesService {
     },
   ): Promise<Movie> {
     const movie = await this.findOne(id);
-    
+
     // Update thumbnail if provided
     if (files.thumbnail && files.thumbnail.length > 0) {
       const thumbnailFile = files.thumbnail[0];
       movie.thumbnail = `/uploads/${thumbnailFile.filename}`;
     }
-    
+
     // Update poster if provided
     if (files.poster && files.poster.length > 0) {
       const posterFile = files.poster[0];
       movie.poster = `/uploads/${posterFile.filename}`;
     }
-    
+
     return this.moviesRepository.save(movie);
   }
 
@@ -182,7 +182,7 @@ export class MoviesService {
     const movie = await this.findOne(movieId);
     movie.views += 1;
     await this.moviesRepository.save(movie);
-    
+
     // Here you could also record user viewing history
     // in a separate table for analytics
   }
@@ -201,13 +201,13 @@ export class MoviesService {
   }> {
     try {
       const totalMovies = await this.moviesRepository.count();
-      
+
       // Get all movies to calculate stats
       const movies = await this.moviesRepository.find();
-      
+
       // Ensure movies is an array before using reduce
       const moviesArray = Array.isArray(movies) ? movies : [];
-      
+
       const totalViews = moviesArray.reduce(
         (sum, movie) => sum + (movie.views || 0),
         0,
@@ -219,16 +219,16 @@ export class MoviesService {
               0,
             ) / moviesArray.length
           : 0;
-      
+
       // Recent uploads (last 7 days) - Fixed query
       const lastWeek = new Date();
       lastWeek.setDate(lastWeek.getDate() - 7);
-      
+
       const recentUploads = await this.moviesRepository
         .createQueryBuilder('movie')
         .where('movie.createdAt >= :lastWeek', { lastWeek })
         .getCount();
-      
+
       // Top movies by views
       const topMovies = moviesArray
         .sort((a, b) => (b.views || 0) - (a.views || 0))
@@ -239,7 +239,7 @@ export class MoviesService {
           views: movie.views || 0,
           rating: movie.averageRating || 0,
         }));
-      
+
       return {
         totalMovies,
         totalViews,
@@ -264,5 +264,140 @@ export class MoviesService {
     const movie = await this.findOne(id);
     movie.isFeatured = featured;
     return this.moviesRepository.save(movie);
+  }
+
+  async findByTitle(title: string): Promise<Movie | null> {
+    return this.moviesRepository.findOne({
+      where: { title, isActive: true },
+      relations: ['genres'],
+    });
+  }
+
+  async addGenreToMovie(movieId: number, genreId: number): Promise<void> {
+    const movie = await this.findOne(movieId);
+    const genre = await this.genresRepository.findOne({
+      where: { id: genreId },
+    });
+
+    if (!genre) {
+      throw new NotFoundException(`Genre with ID ${genreId} not found`);
+    }
+
+    if (!movie.genres) {
+      movie.genres = [];
+    }
+
+    // Check if genre is already assigned
+    const isAlreadyAssigned = movie.genres.some((g) => g.id === genreId);
+    if (!isAlreadyAssigned) {
+      movie.genres.push(genre);
+      await this.moviesRepository.save(movie);
+    }
+  }
+  async crawSubjavData(crawlUrl: string): Promise<Movie[]> {
+    const allLinks = await this.getAllLinks(crawlUrl);
+    const movies: Movie[] = [];
+    for (const link of allLinks) {
+      try {
+        console.log(`🔗 Crawling: ${link}`);
+        const data = await this.getVideoData(link);
+        if (data) {
+          const movie = await this.create(data);
+          movies.push(movie);
+        }
+      } catch (err) {
+        console.error('❌ Error:', err);
+      }
+    }
+    return movies;
+  }
+
+  async getAllLinks(crawlUrl: string): Promise<string[]> {
+    const homepage = crawlUrl;
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.goto(homepage, { waitUntil: 'networkidle2' });
+    const links = await page.$$eval('a.clip-link', (as) =>
+      as.map((a) => a.href),
+    );
+    await browser.close();
+    return links;
+  }
+
+  async getVideoData(pageUrl: string): Promise<CreateMovieDto> {
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+
+    let videoUrl: string = '';
+
+    // Bắt network request để lấy URL thực (vì src là blob)
+    page.on('request', (request) => {
+      const url = request.url();
+      const lowercaseUrl = request.url().toLowerCase();
+      if (
+        lowercaseUrl.includes('https://stream1.quest/videos/') &&
+        lowercaseUrl.includes('index.m3u8')
+      ) {
+        videoUrl = url;
+        console.log(`📥 Request URL: ${request.url()}`);
+      }
+    });
+
+    await page.goto(pageUrl, { waitUntil: 'networkidle2' });
+    //lấy những thông tin khác
+    const data = await page.evaluate(() => {
+      const title =
+        document.getElementsByClassName('entry-title')[0]?.innerHTML || '';
+      const actorElements = document.getElementsByClassName('performer');
+      const cast = Array.from(actorElements).map((el) => {
+        const name = (el as HTMLElement).innerText.trim();
+        if (name !== 'jav hd') {
+          return name;
+        }
+      });
+      const thumbnail = (
+        document.querySelector('#info img') as HTMLImageElement | null
+      )?.src;
+      const description =
+        (document.getElementsByClassName('section-content')[0] as HTMLElement)
+          ?.innerText || '';
+      return { title, cast, description, thumbnail };
+    });
+
+    // Chờ video load và play
+    await page.evaluate(() => {
+      const video = document.querySelector(
+        'video.jw-video',
+      ) as HTMLVideoElement | null;
+      if (video) {
+        video.play();
+      }
+    });
+
+    // Chờ một tí cho network bắt được link
+    //   await page.waitForTimeout(5000)
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    await browser.close();
+    const createMovieDto: CreateMovieDto = {
+      title: data.title,
+      description: data.description,
+      releaseYear: new Date().getFullYear(),
+      releaseDate: new Date().toISOString(),
+      type: MovieType.MOVIE,
+      contentRating: ContentRating.NR,
+      director: MovieType.MOVIE,
+      cast: data.cast.filter((name) => name !== undefined),
+      videoUrl,
+      thumbnail: data.thumbnail ? data.thumbnail : '',
+      isFeatured: false,
+      isTrending: false,
+      isNewRelease: true,
+      isCrawlVideo: true,
+      crawlSrc: 'subjav.cv',
+    };
+
+    console.log(`📹 Video data:`, createMovieDto);
+    return createMovieDto;
   }
 }

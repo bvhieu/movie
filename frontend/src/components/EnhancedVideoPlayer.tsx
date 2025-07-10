@@ -666,7 +666,7 @@ export default function EnhancedVideoPlayer({
                   step="0.1"
                   value={isMuted ? 0 : volume}
                   onChange={(e) => handleVolumeChange(Number(e.target.value))}
-                  className="w-12 sm:w-20 h-2 sm:h-1 bg-white/30 rounded-lg appearance-none cursor-pointer"
+                  className={`w-12 sm:w-20 h-2 sm:h-1 bg-white/30 rounded-lg appearance-none cursor-pointer ${styles.volumeSlider}`}
                   title="Volume control"
                   aria-label="Volume control"
                 />

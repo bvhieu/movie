@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack --port 3000",
+    "dev1": "next dev --turbopack --port 3000",
+    "dev": "cross-env NODE_OPTIONS=--inspect next dev",
     "dev:3000": "next dev --turbopack --port 3000",
     "build": "next build",
     "start": "next start --port 3000",
@@ -11,12 +12,18 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@radix-ui/react-slider": "^1.3.5",
+    "@radix-ui/react-slot": "^1.2.3",
     "@tanstack/react-query": "^5.81.5",
     "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "fs": "^0.0.1-security",
+    "hls.js": "^1.0.3-0.canary.7275",
     "lucide-react": "^0.525.0",
     "next": "15.3.5",
+    "path": "^0.12.7",
+    "puppeteer": "^24.12.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^3.3.1"
@@ -27,9 +34,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
     "tailwindcss": "^4",
+    "tw-animate-css": "^1.3.5",
     "typescript": "^5"
   }
 }

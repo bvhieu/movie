@@ -1,19 +1,37 @@
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, IsArray, IsBoolean, IsDateString, MinLength, MaxLength, Matches, IsUrl, IsInt, Min, Max, ArrayMaxSize } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsNumber,
+  IsEnum,
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  MinLength,
+  MaxLength,
+  Matches,
+  IsUrl,
+  IsInt,
+  Min,
+  Max,
+  ArrayMaxSize,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { MovieType, ContentRating } from '../movie.entity';
 
 // Sanitization transformer for HTML/XSS protection
-const SanitizeHtml = () => Transform(({ value }) => {
-  if (typeof value !== 'string') return value;
-  
-  return value
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
-    .replace(/javascript:/gi, '')
-    .replace(/on\w+\s*=/gi, '')
-    .trim();
-});
+const SanitizeHtml = () =>
+  Transform(({ value }) => {
+    if (typeof value !== 'string') return value;
+
+    return value
+      .replace(/<script[\s\S]*?<\/script>/gi, '')
+      .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+      .replace(/javascript:/gi, '')
+      .replace(/on\w+\s*=/gi, '')
+      .trim();
+  });
 
 export class CreateMovieDto {
   @ApiProperty({ description: 'Movie title' })
@@ -42,7 +60,9 @@ export class CreateMovieDto {
   @ApiProperty({ description: 'Release year' })
   @IsInt({ message: 'Release year must be an integer' })
   @Min(1900, { message: 'Release year must be 1900 or later' })
-  @Max(new Date().getFullYear() + 5, { message: `Release year must not exceed ${new Date().getFullYear() + 5}` })
+  @Max(new Date().getFullYear() + 5, {
+    message: `Release year must not exceed ${new Date().getFullYear() + 5}`,
+  })
   releaseYear: number;
 
   @ApiProperty({ description: 'Release date' })
@@ -171,11 +191,36 @@ export class CreateMovieDto {
   @IsOptional()
   isNewRelease?: boolean;
 
+  @ApiPropertyOptional({ description: 'YouTube video ID' })
+  @IsString()
+  @IsOptional()
+  youtubeId?: string;
+
+  @ApiPropertyOptional({ description: 'Is YouTube content' })
+  @IsBoolean()
+  @IsOptional()
+  isYouTubeContent?: boolean;
+
+  @ApiPropertyOptional({ description: 'Number of views' })
+  @IsNumber()
+  @IsOptional()
+  views?: number;
+
   @ApiPropertyOptional({ description: 'Genre IDs' })
   @IsArray()
   @IsNumber({}, { each: true })
   @IsOptional()
   genreIds?: number[];
+
+  @ApiPropertyOptional({ description: 'Is crawl video' })
+  @IsBoolean()
+  @IsOptional()
+  isCrawlVideo?: boolean;
+
+  @ApiPropertyOptional({ description: 'Crawl source' })
+  @IsString()
+  @IsOptional()
+  crawlSrc?: string;
 }
 
 export class UpdateMovieDto {
@@ -330,4 +375,14 @@ export class UpdateMovieDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
+
+  @ApiPropertyOptional({ description: 'Is crawl video' })
+  @IsBoolean()
+  @IsOptional()
+  isCrawlVideo?: boolean;
+
+  @ApiPropertyOptional({ description: 'Crawl source' })
+  @IsString()
+  @IsOptional()
+  crawlSrc?: string;
 }

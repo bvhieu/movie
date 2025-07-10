@@ -99,7 +99,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 pt-16 sm:pt-20">
+    <div className="min-h-screen bg-gray-900 pt-1 sm:pt-1">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 xl:px-8">
        
         {/* Genre Menu (20 genres) */}

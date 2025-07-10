@@ -14,6 +14,7 @@ import { GenresModule } from './modules/genres/genres.module';
 import { RatingsModule } from './modules/ratings/ratings.module';
 import { WatchlistModule } from './modules/watchlist/watchlist.module';
 import { UserProfilesModule } from './modules/user-profiles/user-profiles.module';
+import { YouTubeCrawlerModule } from './modules/youtube-crawler/youtube-crawler.module';
 import { SecurityMiddleware } from './common/middleware/security.middleware';
 import { SecurityInterceptor } from './common/interceptors/security.interceptor';
 
@@ -33,6 +34,7 @@ import { SecurityInterceptor } from './common/interceptors/security.interceptor'
     RatingsModule,
     WatchlistModule,
     UserProfilesModule,
+    YouTubeCrawlerModule,
   ],
   controllers: [AppController],
   providers: [

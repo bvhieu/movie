@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { Search, LogOut, Settings, Film, Menu, X, Home } from 'lucide-react';
+import { Search, LogOut, Settings, Film, Menu, X, LucideIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 export function Header() {
@@ -27,15 +27,10 @@ export function Header() {
     }
   };
 
-  // Simple navigation - only Home and Admin
-  const navLinks = [
-    { href: '/', label: 'Home', icon: Home },
-  ];
+  // Simple navigation - empty for desktop
+  const navLinks: Array<{ href: string; label: string; icon: LucideIcon }> = [];
 
-  // Only show admin link if user is admin
-  if (isAdmin) {
-    navLinks.push({ href: '/admin', label: 'Admin', icon: Settings });
-  }
+  // No admin link in desktop navigation - moved to mobile menu only
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-gray-800">
@@ -71,8 +66,8 @@ export function Header() {
 
           {/* Search and User Menu */}
           <div className="flex items-center space-x-4">
-            {/* Search */}
-            <form onSubmit={handleSearch} className="hidden sm:block">
+            {/* Search - Always visible */}
+            <form onSubmit={handleSearch} className="flex-1 max-w-md">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <input
@@ -80,14 +75,14 @@ export function Header() {
                   placeholder="Tìm kiếm ..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-gray-800 text-white placeholder-gray-400 pl-10 pr-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-gray-700 transition-colors"
+                  className="w-full bg-gray-800 text-white placeholder-gray-400 pl-10 pr-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-gray-700 transition-colors"
                 />
               </div>
             </form>
 
-            {/* Admin Login Only */}
-            {isAuthenticated && isAdmin ? (
-              <div className="relative">
+            {/* Admin Section - Only when authenticated */}
+            {isAuthenticated && isAdmin && (
+              <div className="relative hidden">
                 <button
                   onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                   className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors"
@@ -97,7 +92,7 @@ export function Header() {
                   <span className="hidden sm:block">Admin</span>
                 </button>
 
-                {/* Admin Dropdown */}
+                {/* Admin Dropdown - Hidden */}
                 {isUserMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 border border-gray-700">
                     <Link
@@ -122,21 +117,12 @@ export function Header() {
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="flex items-center space-x-4">
-                <Link
-                  href="/login"
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md transition-colors"
-                >
-                  Admin Login
-                </Link>
-              </div>
             )}
 
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden text-gray-300 hover:text-white"
+              className="text-gray-300 hover:text-white"
               aria-label="Toggle menu"
             >
               {isMenuOpen ? (
@@ -150,21 +136,7 @@ export function Header() {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-800 py-4">
-            {/* Mobile Search */}
-            <form onSubmit={handleSearch} className="mb-4 sm:hidden">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Tìm kiếm ..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-gray-800 text-white placeholder-gray-400 pl-10 pr-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-gray-700 transition-colors"
-                />
-              </div>
-            </form>
-
+          <div className="border-t border-gray-800 py-4">
             {/* Mobile Nav Links */}
             <nav className="space-y-2">
               {navLinks.map((link) => {
@@ -186,6 +158,44 @@ export function Header() {
                   </Link>
                 );
               })}
+              
+              {/* Admin Login in Mobile Menu */}
+              {!isAuthenticated && (
+                <Link
+                  href="/login"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 transition-all duration-200"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Settings className="h-5 w-5" />
+                  <span className="font-medium">Admin Login</span>
+                </Link>
+              )}
+              
+              {/* Upload Videos in Mobile Menu */}
+              {isAuthenticated && isAdmin && (
+                <Link
+                  href="/admin"
+                  className="flex items-center space-x-3 px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 transition-all duration-200"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <Film className="h-5 w-5" />
+                  <span className="font-medium">Admin</span>
+                </Link>
+              )}
+              
+              {/* Sign Out in Mobile Menu */}
+              {isAuthenticated && isAdmin && (
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center space-x-3 px-4 py-3 rounded-md text-gray-300 hover:text-white hover:bg-gray-800 transition-all duration-200 w-full text-left"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span className="font-medium">Sign Out</span>
+                </button>
+              )}
             </nav>
           </div>
         )}

@@ -1,5 +1,5 @@
 import AdminPanel from '@/components/AdminPanel';
 
-export default function AdminUsersPage() {
+export default function YouTubeCrawlerPage() {
   return <AdminPanel />;
 }
