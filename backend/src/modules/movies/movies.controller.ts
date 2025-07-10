@@ -19,7 +19,12 @@ import {
   Req,
   ParseIntPipe,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiTags,
+} from '@nestjs/swagger';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { JwtService } from '@nestjs/jwt';
 import { MoviesService } from './movies.service';
@@ -47,10 +52,22 @@ export class MoviesController {
   @Post('upload')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Upload a new movie with video, thumbnail, and poster files' })
-  @ApiResponse({ status: 201, description: 'Movie uploaded successfully', type: Movie })
-  @ApiResponse({ status: 400, description: 'Bad request - missing files or invalid data' })
-  @ApiResponse({ status: 401, description: 'Unauthorized - admin role required' })
+  @ApiOperation({
+    summary: 'Upload a new movie with video, thumbnail, and poster files',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Movie uploaded successfully',
+    type: Movie,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad request - missing files or invalid data',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - admin role required',
+  })
   @ApiBearerAuth()
   @UseInterceptors(
     FileFieldsInterceptor(
@@ -222,7 +239,9 @@ export class MoviesController {
         title: movieData.title,
         description: movieData.description,
         tagline: movieData.tagline,
-        releaseYear: releaseYear ? Number(releaseYear) : new Date().getFullYear(),
+        releaseYear: releaseYear
+          ? Number(releaseYear)
+          : new Date().getFullYear(),
         releaseDate: movieData.releaseDate,
         type: movieData.type,
         contentRating: movieData.contentRating,
@@ -245,7 +264,9 @@ export class MoviesController {
           : [],
         videoUrl: `/uploads/${files.video[0].filename}`,
         thumbnail: `/uploads/${files.thumbnail[0].filename}`,
-        poster: files.poster ? `/uploads/${files.poster[0].filename}` : undefined,
+        poster: files.poster
+          ? `/uploads/${files.poster[0].filename}`
+          : undefined,
       };
 
       console.log('Creating movie with DTO:', createMovieDto);
@@ -392,7 +413,8 @@ export class MoviesController {
             cb(null, uploadPath);
           },
           filename: (req, file, callback) => {
-            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+            const uniqueSuffix =
+              Date.now() + '-' + Math.round(Math.random() * 1e9);
             const ext = extname(file.originalname);
             const sanitizedOriginalName = file.originalname
               .replace(/[^a-zA-Z0-9.-]/g, '_')
@@ -407,16 +429,21 @@ export class MoviesController {
         fileFilter: (req, file, callback) => {
           const allowedImageTypes = [
             'image/jpeg',
-            'image/jpg', 
+            'image/jpg',
             'image/png',
             'image/webp',
             'image/gif',
           ];
-          
+
           if (allowedImageTypes.includes(file.mimetype)) {
             callback(null, true);
           } else {
-            callback(new BadRequestException(`Invalid file type for ${file.fieldname}. Allowed: JPG, PNG, WebP, GIF`), false);
+            callback(
+              new BadRequestException(
+                `Invalid file type for ${file.fieldname}. Allowed: JPG, PNG, WebP, GIF`,
+              ),
+              false,
+            );
           }
         },
         limits: {
@@ -427,7 +454,8 @@ export class MoviesController {
   )
   async updateThumbnail(
     @Param('id') id: string,
-    @UploadedFiles() files: {
+    @UploadedFiles()
+    files: {
       thumbnail?: Express.Multer.File[];
       poster?: Express.Multer.File[];
     },
@@ -492,7 +520,7 @@ export class MoviesController {
       'http://localhost:3002',
       'http://localhost:3003',
     ];
-    
+
     if (
       referer &&
       !allowedDomains.some((domain) => referer.startsWith(domain))
@@ -514,7 +542,7 @@ export class MoviesController {
       'idm', // Internet Download Manager
       'jdownloader',
     ];
-    
+
     if (
       userAgent &&
       blockedUserAgents.some((blocked) =>
@@ -547,12 +575,16 @@ export class MoviesController {
       // If file not found, try alternative paths
       if (!fs.existsSync(videoPath)) {
         console.log(`⚠️ File not found at path: ${videoPath}`);
-        
+
         // Try direct path in uploads directory
         const fileName = path.basename(movie.videoUrl);
-        const alternativePath = path.join(__dirname, '../../../uploads', fileName);
+        const alternativePath = path.join(
+          __dirname,
+          '../../../uploads',
+          fileName,
+        );
         console.log(`   Trying alternative path: ${alternativePath}`);
-        
+
         if (fs.existsSync(alternativePath)) {
           console.log(`✅ File found at alternative path`);
           videoPath = alternativePath;
@@ -561,9 +593,11 @@ export class MoviesController {
           const uploadsDir = path.join(__dirname, '../../../uploads');
           try {
             const files = fs.readdirSync(uploadsDir);
-            const videoFiles = files.filter(file => file.startsWith('video-'));
+            const videoFiles = files.filter((file) =>
+              file.startsWith('video-'),
+            );
             console.log(`   Found ${videoFiles.length} video files in uploads`);
-            
+
             if (videoFiles.length > 0) {
               // Use the first video file as a fallback
               const fallbackPath = path.join(uploadsDir, videoFiles[0]);
@@ -610,34 +644,39 @@ export class MoviesController {
 
       // Always allow modern browsers regardless of how they identify themselves
       // Most browsers identify as Chrome, Firefox, Safari, or Edge
-      const probablyBrowser = userAgent && (
-        userAgent.includes('Mozilla/') ||
-        userAgent.includes('Chrome/') ||
-        userAgent.includes('Safari/') ||
-        userAgent.includes('Firefox/') ||
-        userAgent.includes('Edge/') ||
-        userAgent.includes('Opera/') ||
-        userAgent.includes('AppleWebKit/')
-      );
-      
+      const probablyBrowser =
+        userAgent &&
+        (userAgent.includes('Mozilla/') ||
+          userAgent.includes('Chrome/') ||
+          userAgent.includes('Safari/') ||
+          userAgent.includes('Firefox/') ||
+          userAgent.includes('Edge/') ||
+          userAgent.includes('Opera/') ||
+          userAgent.includes('AppleWebKit/'));
+
       // Make sure we allow HEAD requests even without Range header
-      const isHeadRequest = req => req.method === 'HEAD';
-      
+      const isHeadRequest = (req) => req.method === 'HEAD';
+
       // Set CORS headers explicitly for all responses
       const corsHeaders = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
         'Access-Control-Allow-Headers': 'Range, Content-Type, Accept',
-        'Access-Control-Expose-Headers': 'Content-Range, Content-Length, Accept-Ranges'
+        'Access-Control-Expose-Headers':
+          'Content-Range, Content-Length, Accept-Ranges',
       };
 
       // Allow browsers and HEAD requests without Range header
       // Only require Range header for non-browser requests that aren't HEAD
       const allowWithoutRange = probablyBrowser || isHeadRequest(req);
-      
+
       if (!range && !allowWithoutRange) {
-        console.log('⚠️ Missing range header from non-browser, rejecting request');
-        res.status(400).json({ message: 'Range header required for this request' });
+        console.log(
+          '⚠️ Missing range header from non-browser, rejecting request',
+        );
+        res
+          .status(400)
+          .json({ message: 'Range header required for this request' });
         return;
       }
 
@@ -649,13 +688,13 @@ export class MoviesController {
             'Content-Type': contentType,
             'Accept-Ranges': 'bytes',
             'Content-Length': fileSize.toString(),
-            ...corsHeaders
+            ...corsHeaders,
           };
           res.writeHead(200, headHeaders);
           res.end();
           return;
         }
-        
+
         // If no range header, send full file with accept-ranges header
         console.log('📥 Sending full file (no range request)');
         const head = {
@@ -666,26 +705,26 @@ export class MoviesController {
           'Content-Disposition': 'inline; filename="movie.mp4"',
           'X-Content-Type-Options': 'nosniff',
           'X-Frame-Options': 'SAMEORIGIN',
-          ...corsHeaders
+          ...corsHeaders,
         };
-        
+
         // Check if response has already been sent
         if (res.headersSent) {
           console.log('⚠️ Headers already sent, skipping response');
           return;
         }
-        
+
         res.writeHead(200, head);
         const stream = fs.createReadStream(videoPath);
         stream.pipe(res);
-        
+
         stream.on('error', (error) => {
           console.log(`❌ Full file stream error: ${error.message}`);
           if (!res.headersSent) {
             res.status(500).end();
           }
         });
-        
+
         return;
       }
 
@@ -703,7 +742,8 @@ export class MoviesController {
         console.log(
           `❌ INVALID RANGE: ${start}-${end} for file size ${fileSize}`,
         );
-        res.status(416)
+        res
+          .status(416)
           .setHeader('Content-Range', `bytes */${fileSize}`)
           .setHeader('Access-Control-Allow-Origin', '*')
           .end();
@@ -729,17 +769,17 @@ export class MoviesController {
         'Content-Disposition': 'inline; filename="movie.mp4"',
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'SAMEORIGIN',
-        ...corsHeaders
+        ...corsHeaders,
       };
 
       console.log(`✅ Sending range response: ${head['Content-Range']}`);
-      
+
       // Check if response has already been sent
       if (res.headersSent) {
         console.log('⚠️ Headers already sent, skipping response');
         return;
       }
-      
+
       res.writeHead(206, head);
       file.pipe(res);
 
@@ -807,5 +847,28 @@ export class MoviesController {
   @ApiResponse({ status: 200, description: 'Movie unfeatured', type: Movie })
   async unfeatureMovie(@Param('id') id: string): Promise<Movie> {
     return this.moviesService.toggleFeatured(+id, false);
+  }
+
+  @Post('crawl')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Crawl video và tạo movie mới' })
+  @ApiResponse({
+    status: 201,
+    description: 'Movie created from crawl',
+    type: Movie,
+  })
+  @ApiBearerAuth()
+  async crawlAndCreateMovie(@Body() body: { crawlUrl?: string }) {
+    try {
+      const crawlUrl = body.crawlUrl?.trim();
+      const crawlLink = crawlUrl || 'https://subjav.cv/';
+      const movieList = await this.moviesService.crawSubjavData(crawlLink);
+      return movieList;
+    } catch (error) {
+      throw new BadRequestException(
+        'Crawl hoặc tạo movie thất bại: ' + error.message,
+      );
+    }
   }
 }

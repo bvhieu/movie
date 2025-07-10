@@ -135,6 +135,12 @@ export class Movie {
   @Column({ default: false })
   isYouTubeContent: boolean;
 
+  @Column({ default: false })
+  isCrawlVideo: boolean;
+
+  @Column({ nullable: true })
+  crawlSrc: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

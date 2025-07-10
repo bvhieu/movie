@@ -5,6 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+
 // Helper function to safely parse rating values
 export function parseRating(rating: string | number | null | undefined): number {
   if (rating === null || rating === undefined) return 0;
