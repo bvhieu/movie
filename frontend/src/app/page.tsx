@@ -102,12 +102,10 @@ export default function Home() {
     <div className="min-h-screen bg-gray-900 pt-1 sm:pt-1">
       <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 xl:px-8">
        
-        {/* Genre Menu (20 genres) */}
-        <GenreFilter
-          genres={genres.slice(0, 20)} // Limit to 20 genres as requested
-          selectedGenre={selectedGenre}
-          onGenreChange={handleGenreChange}
-        />
+<div style={{ height: 10 }}>
+  <h1 className="text-3xl font-bold text-white mb-4">
+  </h1>
+</div>
 
         {/* Movies Grid with Pagination */}
         <div className="py-4 sm:py-6 lg:py-8">

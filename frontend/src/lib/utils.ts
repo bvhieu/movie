@@ -46,7 +46,9 @@ export function getImageUrl(imageUrl: string | null | undefined): string {
       cleanUrl = cleanUrl.replace('.jp.jpg', '.jpg');
     }
     
-    return `http://localhost:3001/${cleanUrl}`;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+    const baseUrl = apiUrl.replace('/api', '');
+    return `${baseUrl}/${cleanUrl}`;
   }
   
   return imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
@@ -54,13 +56,15 @@ export function getImageUrl(imageUrl: string | null | undefined): string {
 
 // Helper function to get secure video streaming URL
 export function getVideoUrl(movieId: number | string): string {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('authToken');
     if (token) {
-      return `http://localhost:3001/api/movies/${movieId}/stream?token=${encodeURIComponent(token)}`;
+      return `${apiUrl}/movies/${movieId}/stream?token=${encodeURIComponent(token)}`;
     }
   }
-  return `http://localhost:3001/api/movies/${movieId}/stream`;
+  return `${apiUrl}/movies/${movieId}/stream`;
 }
 
 // Helper function to format view count
@@ -86,4 +90,33 @@ export function getGenreColors(genreName: string): { bg: string; text: string } 
   
   const normalizedName = genreName.toLowerCase().replace(/[\s-]/g, '');
   return colors[normalizedName] || { bg: 'bg-gray-500', text: 'text-white' };
+}
+
+// Helper function for API requests with ngrok support
+export function createApiHeaders(additionalHeaders: Record<string, string> = {}): HeadersInit {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
+    ...additionalHeaders
+  };
+
+  // Add auth token if available
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+
+  return headers;
+}
+
+// Helper function for API fetch with proper headers
+export async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const headers = createApiHeaders(options.headers as Record<string, string>);
+  
+  return fetch(url, {
+    ...options,
+    headers
+  });
 }

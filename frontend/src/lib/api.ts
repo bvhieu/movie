@@ -18,14 +18,27 @@ import type {
 } from '@/types/api'
 
 // Create axios instance
+const baseURL = '/api/proxy' // Use Next.js API proxy
+console.log('Configuring axios with baseURL:', baseURL)
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api',
+  baseURL,
   timeout: 300000, // Tăng timeout cho upload file lớn
+  headers: {
+    'Content-Type': 'application/json',
+  },
 })
+
+// Debug logging
+console.log('API Base URL:', process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api')
 
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
+    // Debug logging
+    console.log('Making request to:', (config.baseURL || '') + (config.url || ''))
+    console.log('Request headers:', config.headers)
+    
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('authToken')
       if (token) {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/utils';
 
 export default function ApiDebugger() {
   const [apiResponse, setApiResponse] = useState<any>(null);
@@ -16,11 +17,7 @@ export default function ApiDebugger() {
       
       console.log('Testing API endpoint:', `${API_BASE_URL}/movies`);
       
-      const response = await fetch(`${API_BASE_URL}/movies`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-        },
-      });
+      const response = await apiFetch(`${API_BASE_URL}/movies`);
       
       console.log('Response status:', response.status);
       console.log('Response ok:', response.ok);
